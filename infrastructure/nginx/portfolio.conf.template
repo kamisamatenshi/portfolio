@@ -2,7 +2,7 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name __DOMAIN__ www.__DOMAIN__;
+    server_name __DOMAIN__;
 
     root /var/www/portfolio/current;
     index index.html;
