@@ -124,11 +124,41 @@ svg {
 }
 
 .hero {
+  position: relative;
+  overflow: hidden;
   min-height: calc(100svh - var(--header-h));
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: var(--pad);
   border-bottom: 1px solid var(--line);
+}
+
+.hero-visual {
+  position: absolute;
+  inset: 0 0 0 33%;
+  z-index: 0;
+  overflow: hidden;
+  background: #1a1d21;
+}
+
+.hero-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--paper) 0%, rgba(239,235,226,.38) 29%, transparent 58%);
+}
+
+.hero-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 59% 35%;
+  filter: saturate(.82) contrast(1.08);
+}
+
+.hero > :not(.hero-visual) {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-meta,
@@ -152,12 +182,16 @@ svg {
 .hero-title {
   align-self: center;
   margin: clamp(3rem, 8vw, 7rem) 0;
-  max-width: 12ch;
-  font-size: clamp(4.4rem, 11.7vw, 12rem);
+  max-width: 8ch;
+  font-size: clamp(5rem, 13vw, 13.5rem);
   font-weight: 700;
   line-height: 0.78;
   letter-spacing: -0.075em;
   text-wrap: balance;
+}
+
+.hero-title .line:nth-child(2) {
+  color: #1246d8;
 }
 
 .hero-title em,
@@ -874,6 +908,18 @@ svg {
     min-height: auto;
     padding-top: 1rem;
     padding-bottom: 1.5rem;
+  }
+
+  .hero-visual {
+    inset: 0;
+  }
+
+  .hero-visual::after {
+    background: linear-gradient(180deg, rgba(239,235,226,.22), var(--paper) 78%);
+  }
+
+  .hero-title {
+    margin-top: 14rem;
   }
 
   .hero-title {
