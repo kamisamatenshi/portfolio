@@ -152,7 +152,9 @@ svg {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 59% 35%;
+  object-position: 84% 48%;
+  transform: scale(1.58);
+  transform-origin: 82% center;
   filter: saturate(.82) contrast(1.08);
 }
 
