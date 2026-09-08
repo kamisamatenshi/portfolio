@@ -1,0 +1,76 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Chung Man Tse — Software, AI, 3D & Product',
+  description = 'Portfolio of Chung Man Tse: software, AI, 3D, product systems and business projects built in Singapore.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#efebe2" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <title>{title}</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <div class="scroll-progress" aria-hidden="true"><span data-progress></span></div>
+    <div class="pointer" aria-hidden="true" data-pointer><span data-pointer-label>OPEN</span></div>
+
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="Chung Man Tse — home">
+        <span>CMT</span><span class="wordmark-dot">●</span><span>26</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="/#work">Work</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <p class="kicker">Have an interesting problem?</p>
+      <a class="footer-cta" href="https://github.com/kamisamatenshi" target="_blank" rel="noreferrer" data-cursor="VISIT">
+        <span>Find me on</span>
+        <strong>GitHub ↗</strong>
+      </a>
+      <div class="footer-meta">
+        <span>Chung Man Tse</span>
+        <span>Singapore</span>
+        <span>© 2026</span>
+      </div>
+    </footer>
+
+    <script>
+      import '../scripts/site';
+    </script>
+  </body>
+</html>

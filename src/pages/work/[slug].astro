@@ -1,0 +1,138 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { projects, type Project } from '../../data/projects';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props as { project: Project };
+const currentIndex = projects.findIndex((item) => item.slug === project.slug);
+const nextProject = projects[(currentIndex + 1) % projects.length];
+---
+
+<BaseLayout title={`${project.title} — Chung Man Tse`} description={project.summary}>
+  <section class="case-hero">
+    <a class="case-back text-link" href="/#work">← Back to selected work</a>
+
+    <div class="case-meta" data-reveal>{project.index} / {project.eyebrow}</div>
+    <h1 class="case-title" data-reveal>{project.title}</h1>
+    <p class="case-lede" data-reveal>{project.lede}</p>
+
+    <div class="case-meta-grid" data-reveal>
+      <div>
+        <span>Role</span>
+        <strong>{project.role}</strong>
+      </div>
+      <div>
+        <span>Status</span>
+        <strong>{project.status}</strong>
+      </div>
+      <div>
+        <span>Year</span>
+        <strong>{project.year}</strong>
+      </div>
+      <div>
+        <span>Focus</span>
+        <strong>{project.stack.slice(0, 3).join(' · ')}</strong>
+      </div>
+    </div>
+  </section>
+
+  <div class="case-stage-wrap" data-reveal>
+    <div class={`project-stage stage-${project.visual}`} style={`--tone:${project.tone};`} data-tilt>
+      <span class="stage-label">{project.eyebrow}</span>
+
+      {project.visual === 'scene' && (
+        <>
+          <div class="room-plane" data-drift="24"></div>
+          <div class="stage-word" data-drift="15">HOME</div>
+        </>
+      )}
+
+      {project.visual === 'systems' && (
+        <>
+          <div class="flow" data-drift="16">
+            <span>Customer</span>
+            <span>Catalogue + pricing</span>
+            <span>Order</span>
+          </div>
+          <div class="stage-ghost" data-drift="10"></div>
+        </>
+      )}
+
+      {project.visual === 'mobile' && (
+        <div class="phones" data-drift="18">
+          <span class="phone"></span>
+          <span class="phone"></span>
+          <span class="phone"></span>
+        </div>
+      )}
+
+      {project.visual === 'data' && (
+        <>
+          <div class="chart" data-drift="14">
+            <span class="bar" style="--h:22%"></span>
+            <span class="bar" style="--h:47%"></span>
+            <span class="bar" style="--h:31%"></span>
+            <span class="bar" style="--h:72%"></span>
+            <span class="bar" style="--h:58%"></span>
+            <span class="bar" style="--h:86%"></span>
+            <span class="bar" style="--h:66%"></span>
+            <span class="bar" style="--h:94%"></span>
+          </div>
+          <div class="stage-word">DATA</div>
+        </>
+      )}
+
+      {project.visual === 'hardware' && (
+        <>
+          <div class="dial" data-drift="12"></div>
+          <div class="stage-word">CTRL</div>
+        </>
+      )}
+
+      {project.visual === 'maker' && (
+        <>
+          <div class="tape" data-drift="18">MAKE · SELL · SHIP · LEARN · MAKE · SELL · SHIP · LEARN</div>
+          <div class="stage-ghost" data-drift="8"></div>
+        </>
+      )}
+    </div>
+  </div>
+
+  <section class="case-body">
+    <div class="case-block" data-reveal>
+      <h2>01 / Context</h2>
+      <p>{project.summary}</p>
+    </div>
+
+    <div class="case-block" data-reveal>
+      <h2>02 / The problem</h2>
+      <p>{project.challenge}</p>
+    </div>
+
+    <div class="case-block" data-reveal>
+      <h2>03 / What I did</h2>
+      <p>{project.approach}</p>
+    </div>
+
+    <div class="case-block" data-reveal>
+      <h2>04 / Where it landed</h2>
+      <p>{project.outcome}</p>
+    </div>
+
+    <div class="case-stack" aria-label="Tools and focus areas" data-reveal>
+      {project.stack.map((item) => <span>{item}</span>)}
+    </div>
+  </section>
+
+  <a class="next-project" href={`/work/${nextProject.slug}/`} data-cursor="NEXT">
+    <span>Next project</span>
+    <strong>{nextProject.title}</strong>
+    <b>↗</b>
+  </a>
+</BaseLayout>
