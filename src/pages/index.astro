@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { additionalProjects, featuredProjects } from '../data/projects';
+
+const tickerItems = ['SOFTWARE', 'AI', '3D', 'PRODUCT', 'SYSTEMS', 'BUSINESS', 'EXPERIMENTS'];
+---
+
+<BaseLayout>
+  <section class="hero">
+    <div class="hero-meta">
+      <span>Chung Man Tse / Singapore</span>
+      <span>Portfolio / 2026</span>
+    </div>
+
+    <h1 class="hero-title" aria-label="I build useful things, then make them feel alive.">
+      <span class="line" data-reveal>I build</span>
+      <span class="line" data-reveal><em>useful things,</em></span>
+      <span class="line" data-reveal>then make</span>
+      <span class="line" data-reveal>them feel alive.</span>
+    </h1>
+
+    <div class="hero-bottom" data-reveal>
+      <p class="hero-copy">
+        I work across code, product, 3D and business systems — usually wherever the interesting problem is.
+      </p>
+      <p class="hero-aside">
+        Not one lane.<br />Not one stack.<br />Build the thing that makes sense.
+      </p>
+    </div>
+  </section>
+
+  <div class="ticker" aria-label="Areas of work">
+    <div class="ticker-track">
+      {[0, 1].map(() => (
+        <div class="ticker-group" aria-hidden="true">
+          {tickerItems.map((item) => (
+            <><span>{item}</span><span class="ticker-dot">●</span></>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <section class="section" id="work">
+    <div class="section-head">
+      <strong>Selected work</strong>
+      <span>Four projects / four different problems</span>
+    </div>
+
+    <div class="work-list">
+      {featuredProjects.map((project) => (
+        <article class="work-item" data-reveal>
+          <div class="project-topline">
+            <span>{project.index}</span>
+            <span>{project.eyebrow}</span>
+            <span>{project.status}</span>
+          </div>
+
+          <div class="project-copy">
+            <h2 class="project-title">{project.title}</h2>
+            <p class="project-lede">{project.lede}</p>
+          </div>
+
+          <a
+            class="project-stage-link"
+            href={`/work/${project.slug}/`}
+            aria-label={`Open ${project.title} case study`}
+            data-cursor="OPEN"
+          >
+            <div class={`project-stage stage-${project.visual}`} style={`--tone:${project.tone};`} data-tilt>
+              <span class="stage-label">Case study / {project.year}</span>
+
+              {project.visual === 'scene' && (
+                <>
+                  <div class="room-plane" data-drift="24"></div>
+                  <div class="stage-word" data-drift="15">HOME</div>
+                </>
+              )}
+
+              {project.visual === 'systems' && (
+                <>
+                  <div class="flow" data-drift="16">
+                    <span>Customer</span>
+                    <span>Catalogue + pricing</span>
+                    <span>Order</span>
+                  </div>
+                  <div class="stage-ghost" data-drift="10"></div>
+                </>
+              )}
+
+              {project.visual === 'mobile' && (
+                <div class="phones" data-drift="18">
+                  <span class="phone"></span>
+                  <span class="phone"></span>
+                  <span class="phone"></span>
+                </div>
+              )}
+
+              {project.visual === 'data' && (
+                <>
+                  <div class="chart" data-drift="14">
+                    <span class="bar" style="--h:22%"></span>
+                    <span class="bar" style="--h:47%"></span>
+                    <span class="bar" style="--h:31%"></span>
+                    <span class="bar" style="--h:72%"></span>
+                    <span class="bar" style="--h:58%"></span>
+                    <span class="bar" style="--h:86%"></span>
+                    <span class="bar" style="--h:66%"></span>
+                    <span class="bar" style="--h:94%"></span>
+                  </div>
+                  <div class="stage-word">DATA</div>
+                </>
+              )}
+            </div>
+          </a>
+
+          <div class="project-foot">
+            <span>{project.role}</span>
+            <span>Read case study ↗</span>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="section-head" style="margin-top:clamp(5rem,10vw,10rem)">
+      <strong>More things I make</strong>
+      <span>Physical / digital / somewhere between</span>
+    </div>
+
+    <div class="more-work">
+      {additionalProjects.map((project) => (
+        <a class="more-row" href={`/work/${project.slug}/`} data-cursor="OPEN" data-reveal>
+          <span class="small-label">{project.index}</span>
+          <h3>{project.title}</h3>
+          <p>{project.summary}</p>
+          <span class="more-arrow">↗</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="section" id="about">
+    <div class="section-head">
+      <strong>About the way I work</strong>
+      <span>Generalist on purpose</span>
+    </div>
+
+    <div class="about-grid">
+      <p class="about-statement" data-reveal>
+        I don't really stay in <span class="display-serif">one lane.</span>
+      </p>
+      <div class="about-copy" data-reveal>
+        <p>
+          Some projects start with code. Some start with a business problem, a physical product, a design question, or a ridiculous “what if?” that is interesting enough to test.
+        </p>
+        <p>
+          I like understanding enough of the whole system to make useful decisions — interface, implementation, deployment, data and the awkward operational parts included.
+        </p>
+        <p>
+          This portfolio is intentionally built the same way: no generic template, no wall of identical cards, and no pretending unfinished work is already shipped.
+        </p>
+      </div>
+    </div>
+
+    <div class="now-strip" data-reveal>
+      <div class="small-label">Currently exploring</div>
+      <p>RAG for semiconductor knowledge, better learning tools, and whatever project becomes impossible to ignore next.</p>
+    </div>
+  </section>
+</BaseLayout>
