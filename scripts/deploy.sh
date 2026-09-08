@@ -7,6 +7,20 @@ BASE_DIR="${PORTFOLIO_BASE_DIR:-/var/www/portfolio}"
 REPO_DIR="$BASE_DIR/repo"
 WEB_ROOT="$BASE_DIR/current"
 STATE_DIR="$BASE_DIR/state"
+NVM_DIR="${NVM_DIR:-$BASE_DIR/.nvm}"
+
+export HOME="${HOME:-$BASE_DIR}"
+export NVM_DIR
+
+if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
+  echo "Portfolio Node runtime missing: $NVM_DIR/nvm.sh"
+  echo "Run infrastructure/bootstrap-vps.sh first."
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+source "$NVM_DIR/nvm.sh"
+nvm use 22 >/dev/null
 
 mkdir -p "$BASE_DIR" "$WEB_ROOT" "$STATE_DIR"
 
@@ -31,7 +45,13 @@ if [[ ! -f package.json ]]; then
   exit 0
 fi
 
-npm ci
+if [[ -f package-lock.json ]]; then
+  npm ci --no-audit --no-fund
+else
+  echo "package-lock.json not found; using npm install until the lockfile is committed."
+  npm install --no-audit --no-fund
+fi
+
 npm run build
 
 if [[ ! -d dist ]]; then
