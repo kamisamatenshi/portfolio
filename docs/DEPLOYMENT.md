@@ -3,6 +3,9 @@
 ## Production model
 
 - Source of truth: `kamisamatenshi/portfolio`
+- Production hostname: `portfolio.tsecm.com`
+- DNS/domain management: Hostinger
+- Target server: existing Hostinger VPS used for public applications
 - Production branch: `main`
 - VPS web server: Nginx
 - Build runtime: Node.js 22
@@ -11,44 +14,45 @@
 
 This avoids storing a GitHub deploy credential on the VPS because the repository is public.
 
-## Required inputs before production activation
+## Remaining activation input
 
-1. Portfolio domain/subdomain.
-2. Public IPv4 address of the selected VPS.
-3. DNS provider/control panel.
+The only server-specific value that still needs to be read from the selected VPS/Hostinger panel is its public IPv4 address. Do not guess it and do not change unrelated DNS records.
 
 ## DNS
 
-For an apex domain such as `example.com`:
+Create or update only the portfolio subdomain record:
 
-- `A` record: host `@` -> VPS public IPv4
-- `CNAME` record: host `www` -> `example.com`
+- record type: `A`
+- host/name: `portfolio`
+- value: selected Hostinger VPS public IPv4
 
-If the portfolio is hosted on a subdomain, use the corresponding `A` record for that subdomain instead. Do not change unrelated DNS records.
+Do not modify mail, root-domain, OPTCG, KOI Studio, or other unrelated records.
 
 ## VPS bootstrap
 
-After Issue #1 is merged to `main`, clone the repository or download it to the target VPS, then run:
+Once `portfolio.tsecm.com` resolves to the selected VPS, run from the checked-out repository as root:
 
 ```bash
-sudo bash infrastructure/bootstrap-vps.sh example.com
+sudo bash infrastructure/bootstrap-vps.sh portfolio.tsecm.com
 ```
 
 The bootstrap script:
 - installs Nginx, Git, rsync, Certbot, and Node.js 22 when required;
 - creates a restricted `portfolio` system user;
 - clones the public GitHub repository into `/var/www/portfolio/repo`;
-- configures Nginx;
+- configures Nginx for `portfolio.tsecm.com`;
 - installs the deployment systemd service/timer;
 - enables automatic update checks.
 
 ## HTTPS
 
-Only request the certificate after DNS resolves to the VPS:
+Request the certificate only after DNS resolves to the VPS:
 
 ```bash
-sudo certbot --nginx -d example.com -d www.example.com
+sudo certbot --nginx -d portfolio.tsecm.com
 ```
+
+`www.portfolio.tsecm.com` is intentionally not required.
 
 Verify renewal:
 
@@ -63,8 +67,10 @@ systemctl status portfolio-deploy.timer --no-pager
 systemctl start portfolio-deploy.service
 journalctl -u portfolio-deploy.service -n 100 --no-pager
 nginx -t
-curl -I https://example.com/healthz
+curl -I https://portfolio.tsecm.com/healthz
 ```
+
+Expected health endpoint: HTTP 200 with body `ok`.
 
 ## Deployment behavior
 
@@ -82,4 +88,4 @@ For an urgent outage, the previous known-good commit may be checked out and buil
 
 ## Security
 
-Do not commit passwords, SSH private keys, GitHub tokens, DNS API tokens, or VPS credentials to this repository.
+Do not commit passwords, SSH private keys, GitHub tokens, DNS API tokens, VPS credentials, or control-panel exports containing secrets to this repository.
