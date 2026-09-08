@@ -7,6 +7,8 @@ server {
     root /var/www/portfolio/current;
     index index.html;
 
+    include /etc/nginx/snippets/portfolio-admincontrol.conf;
+
     location / {
         try_files $uri $uri/ /index.html;
     }

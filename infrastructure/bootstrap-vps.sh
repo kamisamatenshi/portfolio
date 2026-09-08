@@ -82,6 +82,8 @@ sudo -u portfolio git -C "$REPO_DIR" reset --hard origin/main
 
 cp "$REPO_DIR/infrastructure/systemd/portfolio-deploy.service" /etc/systemd/system/portfolio-deploy.service
 cp "$REPO_DIR/infrastructure/systemd/portfolio-deploy.timer" /etc/systemd/system/portfolio-deploy.timer
+cp "$REPO_DIR/infrastructure/systemd/portfolio-admin.service" /etc/systemd/system/portfolio-admin.service
+install -D -m 0644 "$REPO_DIR/infrastructure/nginx/portfolio-admincontrol.conf" /etc/nginx/snippets/portfolio-admincontrol.conf
 
 # Refuse to create a duplicate Nginx hostname in another enabled site.
 if grep -RqsE --exclude=portfolio "server_name[^;]*${ESCAPED_DOMAIN}" /etc/nginx/sites-enabled; then
@@ -123,5 +125,7 @@ NEXT:
 4. Run: systemctl start portfolio-deploy.service
 5. Check: systemctl status portfolio-deploy.timer --no-pager
 6. Check: curl -i https://$DOMAIN/healthz
+7. For the optional secure image control, provision /etc/portfolio-admin.env,
+   then run: systemctl enable --now portfolio-admin.service
 
 EOF
