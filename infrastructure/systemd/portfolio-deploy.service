@@ -1,0 +1,11 @@
+[Unit]
+Description=Deploy portfolio from GitHub main branch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=portfolio
+Group=portfolio
+WorkingDirectory=/var/www/portfolio
+ExecStart=/var/www/portfolio/repo/scripts/deploy.sh
