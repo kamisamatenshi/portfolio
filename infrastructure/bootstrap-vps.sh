@@ -21,6 +21,7 @@ NVM_DIR="$BASE_DIR/.nvm"
 NVM_VERSION="v0.40.3"
 NODE_MAJOR="22"
 NGINX_SITE="/etc/nginx/sites-available/portfolio"
+ESCAPED_DOMAIN="${DOMAIN//./\.}"
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -28,6 +29,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
 
 if ! id portfolio >/dev/null 2>&1; then
   useradd --system --create-home --home-dir "$BASE_DIR" --shell /bin/bash portfolio
+else
+  usermod --home "$BASE_DIR" --shell /bin/bash portfolio
 fi
 
 mkdir -p "$BASE_DIR" "$WEB_ROOT" "$STATE_DIR"
@@ -49,13 +52,12 @@ fi
 
 sudo -u portfolio git -C "$REPO_DIR" fetch origin main
 sudo -u portfolio git -C "$REPO_DIR" reset --hard origin/main
-chmod +x "$REPO_DIR/scripts/deploy.sh"
 
 cp "$REPO_DIR/infrastructure/systemd/portfolio-deploy.service" /etc/systemd/system/portfolio-deploy.service
 cp "$REPO_DIR/infrastructure/systemd/portfolio-deploy.timer" /etc/systemd/system/portfolio-deploy.timer
 
 # Refuse to create a duplicate Nginx hostname in another enabled site.
-if grep -RqsE "server_name[^;]*${DOMAIN}" /etc/nginx/sites-enabled --exclude=portfolio; then
+if grep -RqsE --exclude=portfolio "server_name[^;]*${ESCAPED_DOMAIN}" /etc/nginx/sites-enabled; then
   echo "An existing enabled Nginx site already contains server_name ${DOMAIN}."
   echo "No Nginx changes were made. Review the existing configuration first."
   exit 1
