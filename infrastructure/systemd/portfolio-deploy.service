@@ -8,4 +8,6 @@ Type=oneshot
 User=portfolio
 Group=portfolio
 WorkingDirectory=/var/www/portfolio
-ExecStart=/var/www/portfolio/repo/scripts/deploy.sh
+Environment=HOME=/var/www/portfolio
+Environment=NVM_DIR=/var/www/portfolio/.nvm
+ExecStart=/bin/bash /var/www/portfolio/repo/scripts/deploy.sh
