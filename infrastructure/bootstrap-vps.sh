@@ -60,6 +60,8 @@ fi
 
 mkdir -p "$BASE_DIR" "$WEB_ROOT" "$STATE_DIR"
 chown -R portfolio:portfolio "$BASE_DIR"
+# Nginx needs traversal, but not write access, to serve the static release.
+chmod 711 "$BASE_DIR"
 
 # Install an isolated Node.js runtime for this portfolio only.
 # Do NOT replace /usr/bin/node because other applications on this VPS use it.

@@ -34,6 +34,8 @@ Do not modify mail, root-domain, OPTCG, KOI Studio, or other unrelated records.
 
 The portfolio does not depend on `/usr/bin/node`. The bootstrap script creates a dedicated `portfolio` system user and installs NVM plus Node.js 22 inside `/var/www/portfolio/.nvm`.
 
+The portfolio base directory is traversal-only for other users (`0711`), allowing Nginx to serve the public `current` build without granting it write access to the isolated runtime or repository.
+
 The systemd deployment service exports:
 
 ```text
