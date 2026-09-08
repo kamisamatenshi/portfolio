@@ -5,18 +5,20 @@
 - Source of truth: `kamisamatenshi/portfolio`
 - Production hostname: `portfolio.tsecm.com`
 - DNS/domain management: Hostinger
-- Target server: existing Hostinger VPS used for public applications
+- Target server: existing shared Hostinger VPS used for public applications
 - Production branch: `main`
 - VPS web server: Nginx
-- Build runtime: Node.js 22
+- Build runtime: isolated Node.js 22 managed by NVM under `/var/www/portfolio/.nvm`
 - TLS: Let's Encrypt via Certbot
 - Deploy mechanism: VPS-side systemd timer checks `main` every two minutes and deploys only when the commit SHA changes.
 
-This avoids storing a GitHub deploy credential on the VPS because the repository is public.
+The server already hosts other applications, including KOI Studio and OPTCG. Portfolio setup must not replace the system-wide Node.js runtime, stop unrelated services, remove other Nginx sites, or modify unrelated DNS records.
+
+Because the repository is public, the VPS can pull it over HTTPS without storing a GitHub deploy credential.
 
 ## Remaining activation input
 
-The only server-specific value that still needs to be read from the selected VPS/Hostinger panel is its public IPv4 address. Do not guess it and do not change unrelated DNS records.
+The server-specific value that still needs to be read from the selected VPS/Hostinger panel is its public IPv4 address. Do not guess it. The bootstrap script also attempts to print the current public IPv4 for convenience.
 
 ## DNS
 
@@ -28,19 +30,35 @@ Create or update only the portfolio subdomain record:
 
 Do not modify mail, root-domain, OPTCG, KOI Studio, or other unrelated records.
 
+## Shared-VPS runtime isolation
+
+The portfolio does not depend on `/usr/bin/node`. The bootstrap script creates a dedicated `portfolio` system user and installs NVM plus Node.js 22 inside `/var/www/portfolio/.nvm`.
+
+The systemd deployment service exports:
+
+```text
+HOME=/var/www/portfolio
+NVM_DIR=/var/www/portfolio/.nvm
+```
+
+The deploy script sources that NVM installation and explicitly activates Node 22 before installing or building dependencies. This keeps existing applications on their current runtime unless they are changed by their own deployment process.
+
 ## VPS bootstrap
 
-Once `portfolio.tsecm.com` resolves to the selected VPS, run from the checked-out repository as root:
+After the latest infrastructure changes are merged to `main`, obtain a checkout of the repository on the VPS and run as root:
 
 ```bash
 sudo bash infrastructure/bootstrap-vps.sh portfolio.tsecm.com
 ```
 
 The bootstrap script:
-- installs Nginx, Git, rsync, Certbot, and Node.js 22 when required;
-- creates a restricted `portfolio` system user;
+- installs Nginx, Git, rsync, Certbot, build tools and supporting packages when required;
+- creates a dedicated `portfolio` system user;
+- installs an isolated NVM + Node.js 22 runtime for that user;
 - clones the public GitHub repository into `/var/www/portfolio/repo`;
-- configures Nginx for `portfolio.tsecm.com`;
+- refuses to overwrite another enabled Nginx site that already owns `portfolio.tsecm.com`;
+- backs up an existing portfolio Nginx file before replacing it;
+- leaves unrelated Nginx sites and the default site untouched;
 - installs the deployment systemd service/timer;
 - enables automatic update checks.
 
@@ -67,10 +85,12 @@ systemctl status portfolio-deploy.timer --no-pager
 systemctl start portfolio-deploy.service
 journalctl -u portfolio-deploy.service -n 100 --no-pager
 nginx -t
-curl -I https://portfolio.tsecm.com/healthz
+curl -i https://portfolio.tsecm.com/healthz
 ```
 
 Expected health endpoint: HTTP 200 with body `ok`.
+
+Also verify that the existing applications remain available after Nginx reload and portfolio deployment.
 
 ## Deployment behavior
 
@@ -79,6 +99,8 @@ Normal production updates are:
 Issue -> branch -> PR -> review -> merge to `main` -> VPS detects new commit -> build -> replace production `current` directory.
 
 The deploy script records the last deployed SHA under `/var/www/portfolio/state/deployed-sha` and appends deployment history to `/var/www/portfolio/state/deploy-history.log`.
+
+If `package-lock.json` is present, deployment uses `npm ci`. Until the first lockfile is committed, it falls back to `npm install` rather than failing the initial bootstrap.
 
 ## Rollback
 
