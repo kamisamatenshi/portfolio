@@ -31,7 +31,13 @@ if [[ ! -f package.json ]]; then
   exit 0
 fi
 
-npm ci
+if [[ -f package-lock.json ]]; then
+  npm ci --no-audit --no-fund
+else
+  echo "package-lock.json not found; using npm install until the lockfile is committed."
+  npm install --no-audit --no-fund
+fi
+
 npm run build
 
 if [[ ! -d dist ]]; then
