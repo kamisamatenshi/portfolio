@@ -43,7 +43,7 @@ const nextProject = projects[(currentIndex + 1) % projects.length];
   </section>
 
   <div class="case-stage-wrap" data-reveal>
-    <div class={`project-stage stage-${project.visual}`} style={`--tone:${project.tone};`} data-tilt>
+    <div class={`project-stage stage-${project.visual}`} style={`--tone:${project.tone};`} data-tilt data-project-image-slot={project.slug}>
       <span class="stage-label">{project.eyebrow}</span>
 
       {project.visual === 'scene' && (
