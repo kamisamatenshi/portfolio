@@ -62,15 +62,27 @@ Do not manually overwrite production files as the normal workflow.
 ## Production identity
 - Production hostname: `portfolio.tsecm.com`
 - DNS/domain management: Hostinger
-- Target server: the existing Hostinger VPS already used for public applications, including the OPTCG deployment
+- Target server: the existing shared Hostinger VPS already used for public applications, including KOI Studio and OPTCG
 - Production branch: `main`
 
 Do not commit the VPS public IP as a requirement for the application itself. Record non-secret host inventory only when needed for operations.
+
+## Shared VPS safety rules
+The portfolio shares a server with existing live applications. Portfolio infrastructure must therefore be additive and isolated:
+- do not replace the system-wide Node.js runtime;
+- do not stop or reconfigure KOI Studio, OPTCG or unrelated services;
+- do not remove unrelated enabled Nginx sites;
+- do not modify unrelated DNS records;
+- validate Nginx before reload;
+- keep portfolio files under `/var/www/portfolio`.
+
+The portfolio runtime is Node.js 22 installed through NVM under `/var/www/portfolio/.nvm` for the dedicated `portfolio` system user. The deploy service exports that NVM location and the deploy script explicitly activates Node 22 before building. Existing applications can therefore continue using their own current runtimes.
 
 ## Infrastructure model
 Target paths on the VPS:
 - Repository checkout: `/var/www/portfolio/repo`
 - Production web root: `/var/www/portfolio/current`
+- Portfolio Node/NVM runtime: `/var/www/portfolio/.nvm`
 - Deploy script: `/var/www/portfolio/repo/scripts/deploy.sh`
 
 Deployment is intended to run through a systemd timer. Because the repository is public, the VPS can pull over HTTPS without storing a GitHub credential.
@@ -85,6 +97,7 @@ Issue -> branch -> PR -> merge to `main` -> VPS detects new commit -> install/bu
 - Run the VPS bootstrap for `portfolio.tsecm.com`.
 - Verify Nginx, systemd deployment timer and HTTPS certificate.
 - Confirm the production `/healthz` endpoint and current homepage.
+- Confirm the existing KOI Studio and OPTCG sites remain healthy after activation.
 
 Do not store passwords, private keys, tokens, DNS API credentials, or other secrets in this repository.
 
