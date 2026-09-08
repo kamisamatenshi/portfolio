@@ -40,7 +40,7 @@ Planned/possible additions as they mature:
 Preferred architecture for the rebuild:
 - Astro + TypeScript for a fast, mostly-static portfolio.
 - Custom CSS/design tokens rather than a generic component template.
-- Small interactive islands only where useful.
+- Small interactive scripts only where useful.
 - Nginx on Ubuntu VPS.
 - HTTPS via Let's Encrypt/Certbot.
 - Production source: `main` branch.
@@ -59,6 +59,14 @@ After the initial repository bootstrap, substantive changes use:
 
 Do not manually overwrite production files as the normal workflow.
 
+## Production identity
+- Production hostname: `portfolio.tsecm.com`
+- DNS/domain management: Hostinger
+- Target server: the existing Hostinger VPS already used for public applications, including the OPTCG deployment
+- Production branch: `main`
+
+Do not commit the VPS public IP as a requirement for the application itself. Record non-secret host inventory only when needed for operations.
+
 ## Infrastructure model
 Target paths on the VPS:
 - Repository checkout: `/var/www/portfolio/repo`
@@ -67,12 +75,18 @@ Target paths on the VPS:
 
 Deployment is intended to run through a systemd timer. Because the repository is public, the VPS can pull over HTTPS without storing a GitHub credential.
 
-## Deployment inputs still required
-- Final portfolio domain or subdomain.
-- The exact VPS to host the portfolio and its public IPv4 address.
-- DNS provider / control panel for that domain.
+The intended production flow is:
 
-Record these here once confirmed. Do not store passwords, private keys, tokens, or other secrets in this repository.
+Issue -> branch -> PR -> merge to `main` -> VPS detects new commit -> install/build -> atomically replace the production web root.
+
+## Production activation still required
+- Resolve the selected Hostinger VPS public IPv4 from the server itself or Hostinger panel.
+- Point `portfolio.tsecm.com` to that IPv4 without changing unrelated DNS records.
+- Run the VPS bootstrap for `portfolio.tsecm.com`.
+- Verify Nginx, systemd deployment timer and HTTPS certificate.
+- Confirm the production `/healthz` endpoint and current homepage.
+
+Do not store passwords, private keys, tokens, DNS API credentials, or other secrets in this repository.
 
 ## Content rule
 Portfolio text must distinguish between shipped/implemented functionality and planned/prototype functionality. Do not present unimplemented features as live production features.
