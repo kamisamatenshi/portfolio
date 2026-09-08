@@ -33,9 +33,10 @@ function bootSite() {
   void fetch('/portfolio-assets/manifest.json', { cache: 'no-store', signal })
     .then((response): Promise<AssetManifest | null> => (response.ok ? response.json() as Promise<AssetManifest> : Promise.resolve(null)))
     .then((manifest) => {
-      if (!manifest?.slots || signal.aborted) return;
+      const slots = manifest?.slots;
+      if (!slots || signal.aborted) return;
 
-      const heroFilename = manifest.slots['homepage-hero']?.filename;
+      const heroFilename = slots['homepage-hero']?.filename;
       if (safeImageFilename(heroFilename)) {
         const heroImage = document.querySelector<HTMLImageElement>('[data-hero-image]');
         if (heroImage) loadManagedImage(`/portfolio-assets/${encodeURIComponent(heroFilename)}`, () => {
@@ -44,7 +45,7 @@ function bootSite() {
       }
 
       document.querySelectorAll<HTMLElement>('[data-project-image-slot]').forEach((stage) => {
-        const filename = manifest.slots[stage.dataset.projectImageSlot || '']?.filename;
+        const filename = slots[stage.dataset.projectImageSlot || '']?.filename;
         if (!safeImageFilename(filename)) return;
         const assetUrl = `/portfolio-assets/${encodeURIComponent(filename)}`;
         loadManagedImage(assetUrl, () => {
