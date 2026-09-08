@@ -4,6 +4,20 @@
 not part of Astro's static output: a dedicated Node service listens only on
 `127.0.0.1`, and the portfolio Nginx server proxies the private route to it.
 
+## Guided image slots
+
+The control lists only images that have a visible destination today:
+
+- Homepage hero artwork
+- One primary image for each portfolio project
+
+Each project image automatically replaces the temporary visual in its visible
+project stage. For featured projects, that means both the homepage and its case
+study; for the two additional projects, it means the case study. The control
+shows the destination, recommended subject, and recommended crop before an
+image is chosen. No manual filename, source edit, or deployment is needed after
+uploading.
+
 ## Security model
 
 - The password is a salted `scrypt` hash held only in `/etc/portfolio-admin.env`.

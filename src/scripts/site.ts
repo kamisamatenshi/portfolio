@@ -1,5 +1,20 @@
 let cleanupController = new AbortController();
 
+type AssetManifest = {
+  slots?: Record<string, { filename?: string }>;
+};
+
+const safeImageFilename = (value: unknown): value is string => (
+  typeof value === 'string' && /^[a-z0-9-]+\.(?:png|jpe?g|webp)$/i.test(value)
+);
+
+function loadManagedImage(url: string, onLoad: () => void) {
+  const image = new Image();
+  image.decoding = 'async';
+  image.onload = onLoad;
+  image.src = url;
+}
+
 function bootSite() {
   cleanupController.abort();
   cleanupController = new AbortController();
@@ -14,6 +29,34 @@ function bootSite() {
   const pointer = document.querySelector<HTMLElement>('[data-pointer]');
   const pointerLabel = document.querySelector<HTMLElement>('[data-pointer-label]');
   const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  void fetch('/portfolio-assets/manifest.json', { cache: 'no-store', signal })
+    .then((response): Promise<AssetManifest | null> => (response.ok ? response.json() as Promise<AssetManifest> : Promise.resolve(null)))
+    .then((manifest) => {
+      if (!manifest?.slots || signal.aborted) return;
+
+      const heroFilename = manifest.slots['homepage-hero']?.filename;
+      if (safeImageFilename(heroFilename)) {
+        const heroImage = document.querySelector<HTMLImageElement>('[data-hero-image]');
+        if (heroImage) loadManagedImage(`/portfolio-assets/${encodeURIComponent(heroFilename)}`, () => {
+          if (!signal.aborted) heroImage.src = `/portfolio-assets/${encodeURIComponent(heroFilename)}`;
+        });
+      }
+
+      document.querySelectorAll<HTMLElement>('[data-project-image-slot]').forEach((stage) => {
+        const filename = manifest.slots[stage.dataset.projectImageSlot || '']?.filename;
+        if (!safeImageFilename(filename)) return;
+        const assetUrl = `/portfolio-assets/${encodeURIComponent(filename)}`;
+        loadManagedImage(assetUrl, () => {
+          if (signal.aborted) return;
+          stage.style.setProperty('--managed-image', `url("${assetUrl}")`);
+          stage.classList.add('has-managed-image');
+        });
+      });
+    })
+    .catch((error: unknown) => {
+      if ((error as DOMException)?.name !== 'AbortError') console.warn('Portfolio image manifest unavailable.');
+    });
 
   if (hero && !reducedMotion) {
     window.requestAnimationFrame(() => {

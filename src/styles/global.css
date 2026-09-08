@@ -385,6 +385,29 @@ svg {
   animation: stage-unveil 800ms cubic-bezier(.76, 0, .24, 1) 240ms forwards;
 }
 
+.case-stage-wrap.is-inview .project-stage::before {
+  animation: stage-unveil 800ms cubic-bezier(.76, 0, .24, 1) 120ms forwards;
+}
+
+.project-stage.has-managed-image {
+  background-color: #1a1d21;
+  background-image: var(--managed-image);
+  background-position: center;
+  background-size: cover;
+}
+
+.project-stage.has-managed-image > :not(.stage-label) {
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.project-stage.has-managed-image .stage-label {
+  border-color: rgba(255,255,255,.68);
+  background: rgba(21,21,21,.76);
+  color: var(--paper);
+  backdrop-filter: blur(8px);
+}
+
 .project-stage::after {
   content: '';
   position: absolute;

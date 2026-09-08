@@ -1,10 +1,12 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { assetSlotIds, assetSlots } from './asset-slots.mjs';
 
 const port = Number(process.env.PORTFOLIO_ADMIN_PORT || 3847);
 const uploadDirectory = process.env.PORTFOLIO_UPLOAD_DIR || '/var/www/portfolio/state/uploads';
+const manifestPath = process.env.PORTFOLIO_ASSET_MANIFEST || path.join(uploadDirectory, 'manifest.json');
 const passwordHash = process.env.PORTFOLIO_ADMIN_PASSWORD_HASH || '';
 const sessionSecret = process.env.PORTFOLIO_ADMIN_SESSION_SECRET || '';
 const maxUploadBytes = 8 * 1024 * 1024;
@@ -130,6 +132,34 @@ function imageType(buffer) {
   return null;
 }
 
+function assetUrl(filename) {
+  return `/portfolio-assets/${encodeURIComponent(filename)}`;
+}
+
+function isSafeFilename(filename) {
+  return /^[a-z0-9-]+\.(?:png|jpe?g|webp)$/i.test(filename || '');
+}
+
+async function readManifest() {
+  try {
+    const parsed = JSON.parse(await readFile(manifestPath, 'utf8'));
+    const slots = Object.fromEntries(Object.entries(parsed?.slots || {}).filter(([slot, value]) => (
+      assetSlotIds.has(slot) && typeof value?.filename === 'string' && isSafeFilename(value.filename)
+    )));
+    return { version: 1, slots };
+  } catch (error) {
+    if (error && typeof error === 'object' && error.code === 'ENOENT') return { version: 1, slots: {} };
+    throw new Error('The image manifest could not be read.');
+  }
+}
+
+async function writeManifest(manifest) {
+  await mkdir(uploadDirectory, { recursive: true, mode: 0o750 });
+  const temporaryPath = `${manifestPath}.${randomBytes(8).toString('hex')}.tmp`;
+  await writeFile(temporaryPath, `${JSON.stringify(manifest, null, 2)}\n`, { encoding: 'utf8', mode: 0o640, flag: 'wx' });
+  await rename(temporaryPath, manifestPath);
+}
+
 function parseMultipart(contentType, body) {
   const match = /boundary=(?:"([^"]+)"|([^;\s]+))/i.exec(contentType || '');
   if (!match) throw new Error('Expected a multipart upload.');
@@ -160,33 +190,28 @@ function parseMultipart(contentType, body) {
   return { fields, file };
 }
 
-async function listUploads() {
-  await mkdir(uploadDirectory, { recursive: true, mode: 0o750 });
-  const names = await readdir(uploadDirectory);
-  const files = await Promise.all(names
-    .filter((name) => /^[a-z0-9-]+\.(?:png|jpe?g|webp)$/i.test(name))
-    .map(async (name) => ({ name, details: await stat(path.join(uploadDirectory, name)) })));
-  return files
-    .filter(({ details }) => details.isFile())
-    .sort((a, b) => b.details.mtimeMs - a.details.mtimeMs)
-    .slice(0, 60);
-}
-
 function page(title, content) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>
-  :root{color-scheme:light;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#efebe2;color:#151515}*{box-sizing:border-box}body{margin:0;padding:2rem;min-width:320px}.shell{max-width:1100px;margin:0 auto}.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#67635d}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa69f;padding-bottom:1rem}.panel{max-width:34rem;margin:12vh auto 0;border:1px solid #aaa69f;padding:clamp(1.25rem,4vw,2.5rem);background:#f8f5ef}.panel h1,.title{font-size:clamp(2.5rem,7vw,5rem);letter-spacing:-.075em;line-height:.86;margin:.45rem 0 2rem}.title{font-size:clamp(3rem,8vw,7rem)}label{display:grid;gap:.5rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}input{width:100%;padding:.9rem;border:1px solid #77726c;background:white;font:inherit}button{margin-top:1rem;border:0;background:#151515;color:#f8f5ef;padding:.9rem 1.2rem;font:700 .78rem/1 Inter,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}.notice{padding:1rem;border-left:3px solid #4d60ff;background:#e4e7ff}.upload{margin:2rem 0 3rem;padding:1.25rem;border:1px solid #aaa69f;background:#f8f5ef}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}.asset{margin:0;border:1px solid #aaa69f;background:#fff}.asset img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.asset figcaption{padding:.7rem;overflow-wrap:anywhere;font-size:.75rem}.asset code{display:block;color:#67635d;margin-top:.35rem}a{color:inherit}@media(max-width:600px){body{padding:1rem}.top{align-items:flex-start;gap:1rem;flex-direction:column}}</style></head><body>${content}</body></html>`;
+  :root{color-scheme:light;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#efebe2;color:#151515}*{box-sizing:border-box}body{margin:0;padding:2rem;min-width:320px}.shell{max-width:1100px;margin:0 auto}.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#67635d}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:2rem;border-bottom:1px solid #aaa69f;padding-bottom:1rem}.panel{max-width:34rem;margin:12vh auto 0;border:1px solid #aaa69f;padding:clamp(1.25rem,4vw,2.5rem);background:#f8f5ef}.panel h1,.title{font-size:clamp(2.5rem,7vw,5rem);letter-spacing:-.075em;line-height:.86;margin:.45rem 0 2rem}.title{font-size:clamp(3rem,8vw,7rem)}.intro{max-width:46rem;line-height:1.45;color:#67635d}label{display:grid;gap:.5rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}input{width:100%;padding:.9rem;border:1px solid #77726c;background:white;font:inherit}button{margin-top:1rem;border:0;background:#151515;color:#f8f5ef;padding:.9rem 1.2rem;font:700 .78rem/1 Inter,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}.notice{margin:2rem 0;padding:1rem;border-left:3px solid #4d60ff;background:#e4e7ff}.slot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,27rem),1fr));gap:1rem;margin-top:2rem}.slot{padding:1.25rem;border:1px solid #aaa69f;background:#f8f5ef}.slot h2{margin:.35rem 0 1rem;font-size:clamp(1.7rem,3vw,2.6rem);letter-spacing:-.05em;line-height:.9}.slot p{line-height:1.45}.recommendation{font-size:.86rem;color:#67635d}.placeholder{min-height:10rem;display:grid;place-items:center;padding:1rem;border:1px dashed #aaa69f;color:#67635d;text-align:center}.asset{margin:1rem 0;border:1px solid #aaa69f;background:#fff}.asset img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}.asset figcaption{padding:.7rem;overflow-wrap:anywhere;font-size:.75rem}.reset button{background:transparent;color:#151515;border:1px solid #151515}a{color:inherit}@media(max-width:600px){body{padding:1rem}.top{gap:1rem;flex-direction:column}}</style></head><body>${content}</body></html>`;
 }
 
 function loginPage(message = '') {
   return page('Portfolio admin control', `<main class="panel"><p class="eyebrow">Portfolio / private control</p><h1>Image manager.</h1>${message ? `<p class="notice">${escapeHtml(message)}</p>` : ''}<form method="post" action="/admincontrol/login"><label>Password<input name="password" type="password" autocomplete="current-password" required autofocus></label><button type="submit">Enter admin control</button></form></main>`);
 }
 
-async function dashboard(session, uploaded = '') {
-  const uploads = await listUploads();
-  const cards = uploads.length
-    ? uploads.map(({ name }) => `<figure class="asset"><img src="/portfolio-assets/${encodeURIComponent(name)}" alt="Uploaded portfolio asset"><figcaption><a href="/portfolio-assets/${encodeURIComponent(name)}" target="_blank" rel="noreferrer">Open image</a><code>/portfolio-assets/${escapeHtml(name)}</code></figcaption></figure>`).join('')
-    : '<p>No uploaded images yet. The public site continues to use its temporary visual placeholder.</p>';
-  return page('Portfolio image manager', `<main class="shell"><header class="top"><div><p class="eyebrow">Portfolio / admin control</p><h1 class="title">Image manager.</h1></div><form method="post" action="/admincontrol/logout"><input type="hidden" name="csrf" value="${session.csrfToken}"><button type="submit">Sign out</button></form></header>${uploaded ? `<p class="notice">Image uploaded successfully. Its public URL is shown below.</p>` : ''}<section class="upload"><p class="eyebrow">Add a project asset</p><form method="post" action="/admincontrol/upload" enctype="multipart/form-data"><input type="hidden" name="csrf" value="${session.csrfToken}"><label>PNG, JPG or WebP — up to 8 MB<input name="image" type="file" accept="image/png,image/jpeg,image/webp" required></label><button type="submit">Upload image</button></form></section><section><p class="eyebrow">Uploaded files</p><div class="grid">${cards}</div></section></main>`);
+async function dashboard(session, message = '') {
+  const manifest = await readManifest();
+  const slots = assetSlots.map((slot) => {
+    const assigned = manifest.slots[slot.id];
+    const preview = assigned
+      ? `<figure class="asset"><img src="${assetUrl(assigned.filename)}" alt="Current image for ${escapeHtml(slot.project)}"><figcaption>Currently live on the portfolio</figcaption></figure>`
+      : '<p class="placeholder">Using the existing temporary visual until you upload this image.</p>';
+    const reset = assigned
+      ? `<form method="post" action="/admincontrol/reset" class="reset"><input type="hidden" name="csrf" value="${session.csrfToken}"><input type="hidden" name="slot" value="${slot.id}"><button type="submit">Restore placeholder</button></form>`
+      : '';
+    return `<article class="slot"><p class="eyebrow">${escapeHtml(slot.project)}</p><h2>${escapeHtml(slot.title)}</h2><p>${escapeHtml(slot.description)}</p><p class="recommendation">${escapeHtml(slot.recommendation)}</p>${preview}<form method="post" action="/admincontrol/upload" enctype="multipart/form-data"><input type="hidden" name="csrf" value="${session.csrfToken}"><input type="hidden" name="slot" value="${slot.id}"><label>Choose replacement image<input name="image" type="file" accept="image/png,image/jpeg,image/webp" required></label><button type="submit">Upload and publish</button></form>${reset}</article>`;
+  }).join('');
+  return page('Portfolio image manager', `<main class="shell"><header class="top"><div><p class="eyebrow">Portfolio / admin control</p><h1 class="title">Portfolio images.</h1><p class="intro">Every image below has a defined place on the public site. Uploading one replaces only that place—no filenames to remember and no code edit required.</p></div><form method="post" action="/admincontrol/logout"><input type="hidden" name="csrf" value="${session.csrfToken}"><button type="submit">Sign out</button></form></header>${message ? `<p class="notice">${escapeHtml(message)}</p>` : ''}<section class="slot-grid">${slots}</section></main>`);
 }
 
 const server = createServer(async (request, response) => {
@@ -197,7 +222,7 @@ const server = createServer(async (request, response) => {
     if (method === 'GET' && url.pathname === '/admincontrol') {
       const session = currentSession(request);
       if (!session) return send(response, 200, loginPage(url.searchParams.get('error') || ''), { 'Content-Type': 'text/html; charset=utf-8' });
-      return send(response, 200, await dashboard(session, url.searchParams.get('uploaded') || ''), { 'Content-Type': 'text/html; charset=utf-8' });
+      return send(response, 200, await dashboard(session, url.searchParams.get('message') || ''), { 'Content-Type': 'text/html; charset=utf-8' });
     }
 
     if (method === 'POST' && url.pathname === '/admincontrol/login') {
@@ -226,13 +251,29 @@ const server = createServer(async (request, response) => {
     if (method === 'POST' && url.pathname === '/admincontrol/upload') {
       const { fields, file } = parseMultipart(request.headers['content-type'], await readBody(request));
       if (!timingSafeTextMatch(fields.get('csrf'), session.csrfToken)) return send(response, 403, 'Forbidden');
+      const slot = fields.get('slot') || '';
+      if (!assetSlotIds.has(slot)) return send(response, 400, 'Unknown image slot.');
       if (!file || !file.content.length) return redirect(response, '/admincontrol?error=Choose%20an%20image%20to%20upload.');
       const extension = imageType(file.content);
       if (!extension) return redirect(response, '/admincontrol?error=Only%20valid%20PNG%2C%20JPG%2C%20or%20WebP%20images%20are%20accepted.');
       await mkdir(uploadDirectory, { recursive: true, mode: 0o750 });
       const name = `${Date.now()}-${randomBytes(9).toString('hex')}.${extension}`;
       await writeFile(path.join(uploadDirectory, name), file.content, { flag: 'wx', mode: 0o640 });
-      return redirect(response, `/admincontrol?uploaded=${encodeURIComponent(name)}`);
+      const manifest = await readManifest();
+      manifest.slots[slot] = { filename: name, uploadedAt: new Date().toISOString() };
+      await writeManifest(manifest);
+      return redirect(response, `/admincontrol?message=${encodeURIComponent('Image uploaded and published.')}`);
+    }
+
+    if (method === 'POST' && url.pathname === '/admincontrol/reset') {
+      const fields = new URLSearchParams((await readBody(request, 12 * 1024)).toString('utf8'));
+      if (!timingSafeTextMatch(fields.get('csrf'), session.csrfToken)) return send(response, 403, 'Forbidden');
+      const slot = fields.get('slot') || '';
+      if (!assetSlotIds.has(slot)) return send(response, 400, 'Unknown image slot.');
+      const manifest = await readManifest();
+      delete manifest.slots[slot];
+      await writeManifest(manifest);
+      return redirect(response, `/admincontrol?message=${encodeURIComponent('Placeholder restored. The uploaded file was kept safely in storage.')}`);
     }
 
     return send(response, 404, 'Not found');
