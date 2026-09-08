@@ -1,0 +1,24 @@
+[Unit]
+Description=Portfolio admin image upload control
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=portfolio
+Group=portfolio
+WorkingDirectory=/var/www/portfolio/repo
+EnvironmentFile=/etc/portfolio-admin.env
+Environment=HOME=/var/www/portfolio
+Environment=PORTFOLIO_UPLOAD_DIR=/var/www/portfolio/state/uploads
+ExecStart=/bin/bash /var/www/portfolio/repo/admin/start.sh
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/www/portfolio/state/uploads
+
+[Install]
+WantedBy=multi-user.target
