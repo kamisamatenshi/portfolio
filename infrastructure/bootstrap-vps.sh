@@ -62,6 +62,9 @@ mkdir -p "$BASE_DIR" "$WEB_ROOT" "$STATE_DIR"
 chown -R portfolio:portfolio "$BASE_DIR"
 # Nginx needs traversal, but not write access, to serve the static release.
 chmod 711 "$BASE_DIR"
+# Uploaded public images inherit Nginx's group for read-only serving; the
+# portfolio account remains the directory owner and sole writer.
+install -d -o portfolio -g www-data -m 2750 "$STATE_DIR/uploads"
 
 # Install an isolated Node.js runtime for this portfolio only.
 # Do NOT replace /usr/bin/node because other applications on this VPS use it.

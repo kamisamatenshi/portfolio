@@ -14,6 +14,8 @@ not part of Astro's static output: a dedicated Node service listens only on
   and arbitrary files are deliberately rejected.
 - Uploaded files are stored in `/var/www/portfolio/state/uploads`, outside the
   deploy-replaced static release, and are served publicly at `/portfolio-assets/`.
+  The directory uses Nginx's group for read-only public serving; only the
+  `portfolio` account can write new files.
 
 ## VPS activation
 

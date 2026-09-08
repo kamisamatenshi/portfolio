@@ -30,7 +30,7 @@ if [[ ! -f "$NGINX_SITE" ]]; then
 fi
 
 install -D -o root -g root -m 0644 "$REPO_DIR/infrastructure/nginx/portfolio-admincontrol.conf" "$NGINX_SNIPPET"
-install -d -o portfolio -g portfolio -m 0750 "$UPLOAD_DIR"
+install -d -o portfolio -g www-data -m 2750 "$UPLOAD_DIR"
 install -o root -g root -m 0644 "$REPO_DIR/infrastructure/systemd/portfolio-admin.service" /etc/systemd/system/portfolio-admin.service
 chmod 0600 "$ENV_FILE"
 
