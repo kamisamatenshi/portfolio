@@ -104,6 +104,16 @@ svg {
   position: relative;
 }
 
+[data-magnetic] {
+  transform: translate3d(var(--magnetic-x, 0px), var(--magnetic-y, 0px), 0);
+  transition: transform 260ms cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
+}
+
+.site-header nav a {
+  display: inline-block;
+}
+
 .site-header nav a::after,
 .text-link::after {
   content: '';
@@ -139,6 +149,10 @@ svg {
   z-index: 0;
   overflow: hidden;
   background: #1a1d21;
+  opacity: 0;
+  transform: scale(1.06) translate3d(calc(var(--hero-scroll, 0) * -2%), calc(var(--hero-scroll, 0) * 3%), 0);
+  transition: opacity 900ms ease, transform 1400ms cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
 }
 
 .hero-visual::after {
@@ -156,6 +170,12 @@ svg {
   transform: scale(1.58);
   transform-origin: 82% center;
   filter: saturate(.82) contrast(1.08);
+  animation: workshop-pulse 14s ease-in-out infinite alternate;
+}
+
+.hero.is-ready .hero-visual {
+  opacity: 1;
+  transform: scale(1) translate3d(calc(var(--hero-scroll, 0) * -2%), calc(var(--hero-scroll, 0) * 3%), 0);
 }
 
 .hero > :not(.hero-visual) {
@@ -179,6 +199,14 @@ svg {
   justify-content: space-between;
   gap: 1rem;
   color: var(--muted);
+  opacity: 0;
+  transform: translateY(-0.7rem);
+  transition: opacity 600ms ease 180ms, transform 700ms cubic-bezier(.16, 1, .3, 1) 180ms;
+}
+
+.hero.is-ready .hero-meta {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hero-title {
@@ -313,6 +341,7 @@ svg {
   line-height: 0.86;
   letter-spacing: -0.075em;
   font-weight: 720;
+  transition: transform 560ms cubic-bezier(.16, 1, .3, 1), color 260ms ease;
 }
 
 .project-lede {
@@ -338,6 +367,22 @@ svg {
   border-radius: clamp(0.2rem, 1vw, 0.7rem);
   transform: perspective(1400px) rotateX(var(--rx)) rotateY(var(--ry));
   transition: transform 300ms ease, border-radius 300ms ease;
+  will-change: transform;
+}
+
+.project-stage::before {
+  content: '';
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  pointer-events: none;
+  background: var(--paper);
+  transform: scaleX(1);
+  transform-origin: right center;
+}
+
+.work-item.is-inview .project-stage::before {
+  animation: stage-unveil 800ms cubic-bezier(.76, 0, .24, 1) 240ms forwards;
 }
 
 .project-stage::after {
@@ -413,6 +458,7 @@ svg {
   border: 2px solid rgba(0, 0, 0, 0.5);
   transform: perspective(600px) rotateX(62deg) rotateZ(-8deg) translateY(var(--drift-y, 0px));
   background: rgba(255, 255, 255, 0.22);
+  animation: room-breathe 8s ease-in-out infinite;
 }
 
 .stage-scene .room-plane::before,
@@ -459,7 +505,11 @@ svg {
   background: rgba(255,255,255,.35);
   font-size: clamp(0.8rem, 1.5vw, 1.2rem);
   letter-spacing: -0.02em;
+  animation: flow-float 5s ease-in-out infinite;
 }
+
+.stage-systems .flow span:nth-child(2) { animation-delay: -1.4s; }
+.stage-systems .flow span:nth-child(3) { animation-delay: -2.8s; }
 
 .stage-mobile .phones {
   position: absolute;
@@ -483,6 +533,13 @@ svg {
 .stage-mobile .phone:nth-child(2) {
   transform: translateY(-7%);
 }
+
+.stage-mobile .phone {
+  animation: phone-float 5.6s ease-in-out infinite;
+}
+
+.stage-mobile .phone:nth-child(2) { animation-delay: -1.8s; }
+.stage-mobile .phone:nth-child(3) { animation-delay: -3.6s; }
 
 .stage-mobile .phone::before,
 .stage-mobile .phone::after {
@@ -521,7 +578,11 @@ svg {
   height: var(--h);
   background: rgba(0,0,0,.75);
   transform-origin: bottom;
+  animation: data-pulse 3.8s ease-in-out infinite alternate;
 }
+
+.stage-data .bar:nth-child(2n) { animation-delay: -1.3s; }
+.stage-data .bar:nth-child(3n) { animation-delay: -2.1s; }
 
 .stage-hardware .dial {
   position: absolute;
@@ -594,6 +655,7 @@ svg {
   margin: 0;
   font-size: clamp(1.7rem, 4vw, 3.8rem);
   letter-spacing: -0.055em;
+  transition: transform 420ms cubic-bezier(.16, 1, .3, 1);
 }
 
 .more-row p {
@@ -604,6 +666,7 @@ svg {
 
 .more-arrow {
   font-size: 1.6rem;
+  transition: transform 360ms cubic-bezier(.16, 1, .3, 1);
 }
 
 .about-grid {
@@ -688,6 +751,7 @@ svg {
   font-size: clamp(5rem, 14vw, 14rem);
   line-height: .78;
   letter-spacing: -.08em;
+  transition: transform 500ms cubic-bezier(.16, 1, .3, 1), color 220ms ease;
 }
 
 .footer-meta {
@@ -758,7 +822,7 @@ svg {
 [data-reveal] {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 700ms cubic-bezier(.2,.7,.2,1), transform 800ms cubic-bezier(.2,.7,.2,1);
+  transition: opacity 700ms cubic-bezier(.2,.7,.2,1) var(--reveal-delay, 0ms), transform 800ms cubic-bezier(.2,.7,.2,1) var(--reveal-delay, 0ms);
 }
 
 [data-reveal].is-inview {
@@ -766,8 +830,81 @@ svg {
   transform: translateY(0);
 }
 
+[data-reveal][data-magnetic] {
+  transform: translate3d(var(--magnetic-x, 0px), calc(var(--magnetic-y, 0px) + 30px), 0);
+}
+
+[data-reveal][data-magnetic].is-inview {
+  transform: translate3d(var(--magnetic-x, 0px), var(--magnetic-y, 0px), 0);
+}
+
 [data-drift] {
   transform: translateY(var(--drift-y, 0px));
+}
+
+@keyframes workshop-pulse {
+  from { transform: scale(1.58) translate3d(0, 0, 0); }
+  to { transform: scale(1.64) translate3d(-1.2%, -0.8%, 0); }
+}
+
+@keyframes stage-unveil {
+  to { transform: scaleX(0); }
+}
+
+@keyframes room-breathe {
+  50% { transform: perspective(600px) rotateX(62deg) rotateZ(-5deg) translateY(calc(var(--drift-y, 0px) - 10px)); }
+}
+
+@keyframes flow-float {
+  50% { transform: translateY(-12px) rotate(-1deg); }
+}
+
+@keyframes phone-float {
+  50% { transform: translateY(-5%) rotate(2deg); }
+}
+
+@keyframes data-pulse {
+  to { transform: scaleY(.82); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .project-stage-link:hover .project-stage {
+    border-radius: 1.4rem;
+  }
+
+  .work-item:has(.project-stage-link:hover) .project-title {
+    color: var(--accent);
+    transform: translateX(0.035em);
+  }
+
+  .more-row:hover h3 {
+    transform: translateX(0.22em);
+  }
+
+  .more-row:hover .more-arrow {
+    transform: translate(0.2em, -0.2em) rotate(10deg);
+  }
+
+  .footer-cta:hover strong {
+    color: #9db1ff;
+    transform: translateX(0.03em);
+  }
+}
+
+::view-transition-old(root) {
+  animation: page-leave 280ms cubic-bezier(.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: page-enter 520ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes page-leave {
+  to { opacity: 0; transform: translateY(-1.5vh); }
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(2vh); }
 }
 
 .case-hero {
