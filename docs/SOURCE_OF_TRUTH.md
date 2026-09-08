@@ -101,5 +101,19 @@ Issue -> branch -> PR -> merge to `main` -> VPS detects new commit -> install/bu
 
 Do not store passwords, private keys, tokens, DNS API credentials, or other secrets in this repository.
 
+## Reviewed production host profile
+
+Read-only inventory completed 2026-09-09 against the selected Hostinger VPS.
+
+- Public IPv4: `187.127.219.53`
+- Operating system: Ubuntu 24.04 LTS
+- Capacity: 2 vCPU, 8 GB RAM, 96 GB root filesystem
+- System Node.js: Node 18.19.1 / npm 9.2.0 (must remain untouched)
+- Nginx: 1.24.0; configuration validated successfully before portfolio activation
+- Existing public applications: KOI Studio and OPTCG, both served through the existing Nginx configuration
+- Existing certificate automation: `certbot.timer` and `snap.certbot.renew.timer` are enabled and active
+
+The portfolio site does not yet exist on this host: there is no `/var/www/portfolio` tree, `portfolio` system user, Nginx virtual host, or portfolio deployment unit. Bootstrap therefore remains an additive change. Its prerequisite check intentionally skips APT when required packages are already installed, avoiding a shared-service package upgrade during activation.
+
 ## Content rule
 Portfolio text must distinguish between shipped/implemented functionality and planned/prototype functionality. Do not present unimplemented features as live production features.

@@ -23,9 +23,34 @@ NODE_MAJOR="22"
 NGINX_SITE="/etc/nginx/sites-available/portfolio"
 ESCAPED_DOMAIN="${DOMAIN//./\.}"
 
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  nginx git curl rsync ca-certificates certbot python3-certbot-nginx build-essential
+# This host can already run unrelated production applications. Installing a
+# package that is already present may also upgrade it, so only invoke APT for
+# prerequisites that are genuinely absent. In particular, do not upgrade an
+# existing Nginx installation as a side effect of adding this site.
+required_packages=(
+  nginx
+  git
+  curl
+  rsync
+  ca-certificates
+  certbot
+  python3-certbot-nginx
+  build-essential
+)
+missing_packages=()
+
+for package in "${required_packages[@]}"; do
+  if ! dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null | grep -qx 'installed'; then
+    missing_packages+=("$package")
+  fi
+done
+
+if (( ${#missing_packages[@]} > 0 )); then
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-upgrade "${missing_packages[@]}"
+else
+  echo "All portfolio bootstrap prerequisites are already installed; skipping APT."
+fi
 
 if ! id portfolio >/dev/null 2>&1; then
   useradd --system --create-home --home-dir "$BASE_DIR" --shell /bin/bash portfolio

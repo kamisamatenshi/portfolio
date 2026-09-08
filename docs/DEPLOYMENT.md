@@ -52,7 +52,7 @@ sudo bash infrastructure/bootstrap-vps.sh portfolio.tsecm.com
 ```
 
 The bootstrap script:
-- installs Nginx, Git, rsync, Certbot, build tools and supporting packages when required;
+- installs only missing prerequisites (Nginx, Git, rsync, Certbot, build tools and supporting packages), and skips APT entirely when they are already present;
 - creates a dedicated `portfolio` system user;
 - installs an isolated NVM + Node.js 22 runtime for that user;
 - clones the public GitHub repository into `/var/www/portfolio/repo`;
