@@ -115,7 +115,7 @@ Portfolio Node runtime: isolated under $NVM_DIR (Node major $NODE_MAJOR)
 Public IPv4 detected: ${PUBLIC_IPV4:-unable to detect automatically}
 
 NEXT:
-1. In Hostinger DNS, set only the A record `portfolio` to this VPS public IPv4 address.
+1. In Hostinger DNS, set only the A record portfolio to this VPS public IPv4 address.
 2. Wait for $DOMAIN to resolve to this VPS.
 3. Run: certbot --nginx -d $DOMAIN
 4. Run: systemctl start portfolio-deploy.service
