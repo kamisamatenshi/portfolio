@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for portfolio updates every two minutes
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=2min
+Persistent=true
+Unit=portfolio-deploy.service
+
+[Install]
+WantedBy=timers.target
