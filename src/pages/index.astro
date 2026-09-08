@@ -6,22 +6,22 @@ const tickerItems = ['SOFTWARE', 'AI', '3D', 'PRODUCT', 'SYSTEMS', 'BUSINESS', '
 ---
 
 <BaseLayout>
-  <section class="hero">
-    <div class="hero-visual" aria-hidden="true">
+  <section class="hero" data-hero>
+    <div class="hero-visual" aria-hidden="true" data-hero-visual>
       <img src="/images/art-direction/kinetic-workshop-placeholder.png" alt="" />
     </div>
-    <div class="hero-meta">
+    <div class="hero-meta" data-hero-meta>
       <span>Chung Man Tse / Singapore</span>
       <span>Portfolio / 2026</span>
     </div>
 
     <h1 class="hero-title" aria-label="I build useful things, then make them feel alive.">
-      <span class="line" data-reveal>Building</span>
-      <span class="line" data-reveal><em>useful</em></span>
-      <span class="line" data-reveal>worlds.</span>
+      <span class="line" data-reveal style="--reveal-delay: 80ms">Building</span>
+      <span class="line" data-reveal style="--reveal-delay: 200ms"><em>useful</em></span>
+      <span class="line" data-reveal style="--reveal-delay: 320ms">worlds.</span>
     </h1>
 
-    <div class="hero-bottom" data-reveal>
+    <div class="hero-bottom" data-reveal style="--reveal-delay: 500ms">
       <p class="hero-copy">
         I work across code, product, 3D and business systems — usually wherever the interesting problem is.
       </p>
@@ -44,14 +44,14 @@ const tickerItems = ['SOFTWARE', 'AI', '3D', 'PRODUCT', 'SYSTEMS', 'BUSINESS', '
   </div>
 
   <section class="section" id="work">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <strong>Selected work</strong>
       <span>Four projects / four different problems</span>
     </div>
 
     <div class="work-list">
-      {featuredProjects.map((project) => (
-        <article class="work-item" data-reveal>
+      {featuredProjects.map((project, index) => (
+        <article class="work-item" data-reveal style={`--reveal-delay:${index * 80}ms`}>
           <div class="project-topline">
             <span>{project.index}</span>
             <span>{project.eyebrow}</span>
@@ -69,7 +69,7 @@ const tickerItems = ['SOFTWARE', 'AI', '3D', 'PRODUCT', 'SYSTEMS', 'BUSINESS', '
             aria-label={`Open ${project.title} case study`}
             data-cursor="OPEN"
           >
-            <div class={`project-stage stage-${project.visual}`} style={`--tone:${project.tone};`} data-tilt>
+            <div class={`project-stage stage-${project.visual}`} style={`--tone:${project.tone};`} data-tilt data-stage>
               <span class="stage-label">Case study / {project.year}</span>
 
               {project.visual === 'scene' && (
@@ -124,14 +124,14 @@ const tickerItems = ['SOFTWARE', 'AI', '3D', 'PRODUCT', 'SYSTEMS', 'BUSINESS', '
       ))}
     </div>
 
-    <div class="section-head" style="margin-top:clamp(5rem,10vw,10rem)">
+    <div class="section-head" style="margin-top:clamp(5rem,10vw,10rem)" data-reveal>
       <strong>More things I make</strong>
       <span>Physical / digital / somewhere between</span>
     </div>
 
     <div class="more-work">
       {additionalProjects.map((project) => (
-        <a class="more-row" href={`/work/${project.slug}/`} data-cursor="OPEN" data-reveal>
+        <a class="more-row" href={`/work/${project.slug}/`} data-cursor="OPEN" data-reveal data-magnetic>
           <span class="small-label">{project.index}</span>
           <h3>{project.title}</h3>
           <p>{project.summary}</p>
@@ -142,7 +142,7 @@ const tickerItems = ['SOFTWARE', 'AI', '3D', 'PRODUCT', 'SYSTEMS', 'BUSINESS', '
   </section>
 
   <section class="section" id="about">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <strong>About the way I work</strong>
       <span>Generalist on purpose</span>
     </div>

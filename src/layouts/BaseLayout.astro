@@ -46,9 +46,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         <span>CMT</span><span class="wordmark-dot">●</span><span>26</span>
       </a>
       <nav aria-label="Primary navigation">
-        <a href="/#work">Work</a>
-        <a href="/#about">About</a>
-        <a href="/#contact">Contact</a>
+        <a href="/#work" data-magnetic>Work</a>
+        <a href="/#about" data-magnetic>About</a>
+        <a href="/#contact" data-magnetic>Contact</a>
       </nav>
     </header>
 
@@ -58,7 +58,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 
     <footer class="site-footer" id="contact">
       <p class="kicker">Have an interesting problem?</p>
-      <a class="footer-cta" href="https://github.com/kamisamatenshi" target="_blank" rel="noreferrer" data-cursor="VISIT">
+      <a class="footer-cta" href="https://github.com/kamisamatenshi" target="_blank" rel="noreferrer" data-cursor="VISIT" data-magnetic>
         <span>Find me on</span>
         <strong>GitHub ↗</strong>
       </a>

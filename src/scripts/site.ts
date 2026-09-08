@@ -13,11 +13,22 @@ function bootSite() {
   const driftNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-drift]'));
   const pointer = document.querySelector<HTMLElement>('[data-pointer]');
   const pointerLabel = document.querySelector<HTMLElement>('[data-pointer-label]');
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  if (hero && !reducedMotion) {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => hero.classList.add('is-ready'));
+    });
+  }
 
   const updateScroll = () => {
     const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const ratio = Math.min(1, Math.max(0, window.scrollY / max));
     if (progress) progress.style.transform = `scaleX(${ratio})`;
+
+    if (hero && !reducedMotion) {
+      hero.style.setProperty('--hero-scroll', `${Math.min(1, Math.max(0, window.scrollY / window.innerHeight))}`);
+    }
 
     if (!reducedMotion) {
       driftNodes.forEach((node) => {
@@ -84,6 +95,32 @@ function bootSite() {
       { signal },
     );
     stage.addEventListener('pointerleave', reset, { signal });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((target) => {
+    const reset = () => {
+      target.style.setProperty('--magnetic-x', '0px');
+      target.style.setProperty('--magnetic-y', '0px');
+    };
+
+    if (!finePointer || reducedMotion) {
+      reset();
+      return;
+    }
+
+    target.addEventListener(
+      'pointermove',
+      (event) => {
+        const rect = target.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        target.style.setProperty('--magnetic-x', `${x * 10}px`);
+        target.style.setProperty('--magnetic-y', `${y * 7}px`);
+      },
+      { signal },
+    );
+    target.addEventListener('pointerleave', reset, { signal });
+    target.addEventListener('blur', reset, { signal });
   });
 
   if (pointer && pointerLabel && finePointer && !reducedMotion) {
